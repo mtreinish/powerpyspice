@@ -72,8 +72,10 @@ class SpiceLine(lines.Line2D):
         self.text.draw(renderer)
 
 
-def display_plot(hdf_file):
-    for plot in CONF.plots:
+def display_plot(hdf_file, plots=None, ax=None):
+    if plots is None:
+        plots = CONF.plots
+    for plot in plots:
         plot_to_graph = hdf_file.get(plot)
         x = None
         data_vectors = []
@@ -88,6 +90,10 @@ def display_plot(hdf_file):
 
         for vector in data_vectors:
             y = vector[:]
-            matplotlib.pyplot.plot(x, y, label=vector.attrs['name'])
-    matplotlib.pyplot.legend()
-    matplotlib.pyplot.show()
+            if ax is None:
+                matplotlib.pyplot.plot(x, y, label=vector.attrs['name'])
+            else:
+                ax.plot(x, y, label=vector.attrs['name'])
+    if ax is None:
+        matplotlib.pyplot.legend()
+        matplotlib.pyplot.show()
