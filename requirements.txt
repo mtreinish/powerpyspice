@@ -1,5 +1,5 @@
 d2to1>=0.2.10,<0.3
-pbr>=0.5
+pbr>=0.5.16,<0.6
 httplib2>=0.7.0
 testtools>=0.9.32
 testresources
@@ -7,6 +7,4 @@ testrepository
 oslo.config>=1.1.0
 numpy
 matplotlib
-numexpr>2.0.0
-Cython>0.13
-tables
+h5py
