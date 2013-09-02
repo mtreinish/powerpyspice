@@ -98,11 +98,29 @@ class PyApp(gtk.Window):
             model[it][0] = not model[it][0]
 
     def _toggle_check(self, widget, label):
-        print label
         self.plot_dict[label] = not self.plot_dict[label]
+
+    def _get_vector_names(self, plot_name):
+        vector_names = []
+        for vector in self.hdf_file.get(plot_name).values():
+            if 'scale' not in vector.name:
+                vector_names.append(vector.attrs['name'])
+        return vector_names
 
     def select_plots(self):
         plots = self._get_plots()
+        # Filename Label:
+        hbox = gtk.HBox(homogeneous=True)
+        hbox.pack_start(gtk.Label(self.filename))
+        self.vbox.pack_start(hbox)
+        hbox.show_all()
+        # Display key
+        hbox = gtk.HBox(homogeneous=True)
+        hbox.pack_start(gtk.Label('Plot Name'))
+        hbox.pack_start(gtk.Label('Selected'))
+        hbox.pack_start(gtk.Label('Data Vectors'))
+        self.vbox.pack_start(hbox)
+        hbox.show_all()
         # Generate checkbox list for plots
         for i in plots:
             self.plot_dict[i] = False
@@ -111,6 +129,7 @@ class PyApp(gtk.Window):
             button = gtk.CheckButton("Selected")
             button.connect("toggled", self._toggle_check, i)
             hbox.pack_start(button)
+            hbox.pack_start(gtk.Label(str(self._get_vector_names(i))))
             self.vbox.pack_start(hbox)
             hbox.show_all()
         # Generate plot toggle button
@@ -143,15 +162,28 @@ class PyApp(gtk.Window):
         vbox.pack_start(toolbar, False, False)
         win.show_all()
 
+    def on_warn(self, message):
+        md = gtk.MessageDialog(self, gtk.DIALOG_DESTROY_WITH_PARENT,
+                               gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE,
+                               message)
+        md.run()
+        md.destroy
+
+    def on_error(self, message):
+        md = gtk.MessageDialog(self, gtk.DIALOG_DESTROY_WITH_PARENT,
+                               gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+                               message)
+        md.run()
+        md.destroy()
+
     def _get_hdf_file(self):
         if self.filename is None:
-            print "A filename must be chosen"
-            return
+            self.on_warn("A filename must be chosen")
         if self.filename.endswith('.h5'):
             return h5py.File(self.filename, "r")
         elif '.raw' in self.filename:
             hdf = spice_to_hdf.HdfCreate(self.filename)
             return h5py.File(hdf.outfile, "r")
         else:
-            print "Unrecognized file extension"
+            self.on_error("Unrecognized file extension for %s" % self.filename)
             return
